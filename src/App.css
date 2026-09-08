@@ -1321,7 +1321,10 @@ body {
   }
 
   .hush-phone-image {
-    width: 290px;
+   width: 190px !important;
+    max-width: 55vw !important;
+    height: auto;
+    margin: 0 auto;
   }
 
   .floating-note {
