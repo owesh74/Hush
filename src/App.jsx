@@ -1272,256 +1272,337 @@ const GroupRoom = () => {
 
   if (step === 'auth') {
 
-   return (
-  <div className="hush-auth-page">
+    if (!groupExists) {
+      return (
+        <div className="hush-auth-page">
+          <div className="hush-bg-image"></div>
 
-    {/* BACKGROUND */}
-    <div className="hush-bg-image"></div>
+          <DraggableSticker
+            src="/sticker-left.png"
+            className="sticker-left"
+            alt=""
+          />
 
-    {/* FLOATING STICKERS */}
-    <img
-      src="/sticker-left.png"
-      className="hush-sticker sticker-left"
-      alt=""
-    />
+          <DraggableSticker
+            src="/sticker-right.png"
+            className="sticker-right"
+            alt=""
+          />
 
-    <img
-      src="/sticker-right.png"
-      className="hush-sticker sticker-right"
-      alt=""
-    />
+          <button
+            className="hush-back-button"
+            onClick={() => navigate('/join')}
+            aria-label="Go back"
+          >
+            ←
+          </button>
 
-    <img
-      src="/sticker-top.png"
-      className="hush-sticker sticker-top"
-      alt=""
-    />
+          <div className="hush-auth-brand">
+            <div className="hush-auth-logo">H</div>
+            <h1>Hush</h1>
+            <p>Real Conversations. No Identities.</p>
+          </div>
 
-    {/* BACK BUTTON */}
-    <button
-      className="hush-back-button"
-      onClick={() => navigate('/')}
-      aria-label="Go back"
-    >
-      ←
-    </button>
+          <div className="hush-room-card">
+            <div className="hush-room-form">
+              <label>Room Not Found</label>
 
-    {/* BRAND */}
-    <div className="hush-auth-brand">
+              <p className="hush-room-description">
+                This room does not exist. Check the room name and try again.
+              </p>
 
-      <div className="hush-auth-logo">
-        H
-      </div>
+              <button
+                className="hush-join-button"
+                onClick={() => navigate('/join')}
+                type="button"
+              >
+                Back to Join Room →
+              </button>
+            </div>
+          </div>
 
-      <h1>
-        Hush
-      </h1>
+          <div className="hush-security-note">
+            <span>🔒</span>
+            <span>No account. No personal information. Just real people.</span>
+          </div>
+        </div>
+      );
+    }
 
-      <p>
-        Real Conversations. No Identities.
-      </p>
+    const chooseExisting = () => {
+      setAuthView('existing');
+      setSelectedChar(null);
+      setInputName('');
+      setInputPin('');
+      setError('');
+    };
 
-    </div>
+    const chooseNew = () => {
+      setAuthView('new');
+      setSelectedChar(null);
+      setInputName('');
+      setInputPin('');
+      setError('');
+    };
 
+    const loginExisting = () => {
+      if (!selectedChar) {
+        setError('Please select a character.');
+        return;
+      }
 
-    {/* CREATE ROOM CARD */}
-    <div className="hush-room-card create-room-card">
+      if (inputPin.length !== 4) {
+        setError('Please enter a 4-digit PIN.');
+        return;
+      }
 
-      {/* TABS */}
-      <div className="hush-room-tabs">
+      attemptAuth(selectedChar.name, inputPin, false);
+    };
+
+    const createCharacter = () => {
+      if (!inputName.trim()) {
+        setError('Please enter a character name.');
+        return;
+      }
+
+      if (inputPin.length !== 4) {
+        setError('PIN must be exactly 4 digits.');
+        return;
+      }
+
+      attemptAuth(inputName.trim(), inputPin, true);
+    };
+
+    return (
+      <div className="hush-auth-page">
+
+        <div className="hush-bg-image"></div>
+
+        <DraggableSticker
+          src="/sticker-left.png"
+          className="sticker-left"
+          alt=""
+        />
+
+        <DraggableSticker
+          src="/sticker-right.png"
+          className="sticker-right"
+          alt=""
+        />
 
         <button
-          className="hush-room-tab"
-          type="button"
+          className="hush-back-button"
           onClick={() => navigate('/join')}
-        >
-          Join Room
-        </button>
-
-        <button
-          className="hush-room-tab active"
+          aria-label="Go back"
           type="button"
         >
-          Create Room
+          ←
         </button>
 
-      </div>
-
-
-      {/* FORM */}
-      <div className="hush-room-form">
-
-        <label>
-          Create Your Room
-        </label>
-
-        <p className="hush-room-description">
-          Start a private conversation without creating an account.
-        </p>
-
-
-        {/* ROOM NAME */}
-        <div className="hush-input-wrapper">
-
-          <span className="hush-input-icon">
-            #
-          </span>
-
-          <input
-            className="hush-room-input"
-            placeholder="Enter a unique room name"
-            value={groupName}
-            onChange={(e) => {
-              setGroupName(e.target.value);
-              setError('');
-            }}
-          />
-
+        <div className="hush-auth-brand">
+          <div className="hush-auth-logo">H</div>
+          <h1>Hush</h1>
+          <p>Real Conversations. No Identities.</p>
         </div>
 
-        <div className="create-input-hint">
-          Anyone with the room name can find it.
-        </div>
+        <div className="hush-room-card">
 
-
-        {/* DIVIDER */}
-        <div className="create-divider">
-          <span>OPTIONAL</span>
-        </div>
-
-
-        {/* CHARACTER NAME */}
-        <label>
-          Character Name
-        </label>
-
-        <div className="hush-input-wrapper">
-
-          <span className="hush-input-icon">
-            👤
-          </span>
-
-          <input
-            className="hush-room-input"
-            placeholder="Choose your anonymous name"
-            value={charName}
-            onChange={(e) => {
-              setCharName(e.target.value);
-              setError('');
-            }}
-          />
-
-        </div>
-
-
-        {/* PIN */}
-        <label>
-          4-Digit PIN
-        </label>
-
-        <div className="hush-input-wrapper">
-
-          <span className="hush-input-icon">
-            🔒
-          </span>
-
-          <input
-            className="hush-room-input"
-            placeholder="Create a PIN"
-            type="password"
-            inputMode="numeric"
-            maxLength={4}
-            value={pin}
-            onChange={(e) => {
-              setPin(e.target.value.replace(/\D/g, ''));
-              setError('');
-            }}
-          />
-
-        </div>
-
-
-        {/* ERROR */}
-        {error && (
-          <div className="hush-room-error">
-            {error}
-          </div>
-        )}
-
-
-        {/* CREATE BUTTON */}
-        <button
-          onClick={handlePreCheck}
-          className="hush-join-button create-submit-button"
-        >
-          Create Room →
-        </button>
-
-      </div>
-
-    </div>
-
-
-    {/* SECURITY NOTE */}
-    <div className="hush-security-note">
-
-      <span>🔒</span>
-
-      <span>
-        No account. No personal information. Just real people.
-      </span>
-
-    </div>
-
-
-    {/* CONFIRMATION MODAL */}
-    {showConfirm && (
-
-      <div className="modal-overlay">
-
-        <div className="modal-content">
-
-          <div className="modal-icon">
-            <RiLock2Line />
-          </div>
-
-          <h3>
-            Ready to create?
-          </h3>
-
-          <p>
-            Your room will be created as
-            <strong className="highlight-text">
-              {' '}{groupName}
-            </strong>.
-          </p>
-
-          <div className="modal-actions">
+          <div className="hush-room-tabs">
 
             <button
-              className="btn-cancel"
-              onClick={() => setShowConfirm(false)}
+              className={`hush-room-tab ${authView === 'existing' ? 'active' : ''}`}
+              type="button"
+              onClick={chooseExisting}
             >
-              Cancel
+              Existing Character
             </button>
 
             <button
-              className="btn-confirm"
-              onClick={handleCreate}
+              className={`hush-room-tab ${authView === 'new' ? 'active' : ''}`}
+              type="button"
+              onClick={chooseNew}
             >
-              Create Room
+              New Character
             </button>
 
           </div>
 
+          <div className="hush-room-form">
+
+            {authView === 'selection' && (
+              <>
+                <label>Enter the Room</label>
+
+                <p className="hush-room-description">
+                  Choose how you want to enter this anonymous conversation.
+                </p>
+
+                <button
+                  className="hush-join-button"
+                  type="button"
+                  onClick={chooseExisting}
+                >
+                  Login as Existing Character →
+                </button>
+
+                <button
+                  className="hush-join-button"
+                  type="button"
+                  onClick={chooseNew}
+                  style={{ marginTop: '12px' }}
+                >
+                  Create New Character →
+                </button>
+              </>
+            )}
+
+            {authView === 'existing' && (
+              <>
+                <label>Select Character</label>
+
+                <p className="hush-room-description">
+                  Choose your character and enter its 4-digit PIN.
+                </p>
+
+                {characters.length === 0 ? (
+                  <p className="hush-room-description">
+                    No characters exist yet. Create a new character instead.
+                  </p>
+                ) : (
+                  <div className="character-list">
+                    {characters.map((character) => (
+                      <button
+                        key={character._id || character.name}
+                        type="button"
+                        className={`info-character ${
+                          selectedChar?.name === character.name
+                            ? 'selected-character'
+                            : ''
+                        }`}
+                        onClick={() => {
+                          setSelectedChar(character);
+                          setError('');
+                        }}
+                      >
+                        <div className="info-avatar">
+                          {character.name?.charAt(0)?.toUpperCase()}
+                        </div>
+                        <span>{character.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <label>4-Digit PIN</label>
+
+                <div className="hush-input-wrapper">
+                  <span className="hush-input-icon">🔒</span>
+
+                  <input
+                    className="hush-room-input"
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    placeholder="Enter your PIN"
+                    value={inputPin}
+                    onChange={(e) => {
+                      setInputPin(e.target.value.replace(/\D/g, ''));
+                      setError('');
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        loginExisting();
+                      }
+                    }}
+                  />
+                </div>
+
+                {error && (
+                  <div className="hush-room-error">{error}</div>
+                )}
+
+                <button
+                  className="hush-join-button"
+                  type="button"
+                  onClick={loginExisting}
+                >
+                  Enter Room →
+                </button>
+              </>
+            )}
+
+            {authView === 'new' && (
+              <>
+                <label>Create Your Character</label>
+
+                <p className="hush-room-description">
+                  Choose an anonymous name and protect it with a 4-digit PIN.
+                </p>
+
+                <div className="hush-input-wrapper">
+                  <span className="hush-input-icon">👤</span>
+
+                  <input
+                    className="hush-room-input"
+                    placeholder="Choose your anonymous name"
+                    value={inputName}
+                    onChange={(e) => {
+                      setInputName(e.target.value);
+                      setError('');
+                    }}
+                  />
+                </div>
+
+                <label>4-Digit PIN</label>
+
+                <div className="hush-input-wrapper">
+                  <span className="hush-input-icon">🔒</span>
+
+                  <input
+                    className="hush-room-input"
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    placeholder="Create a PIN"
+                    value={inputPin}
+                    onChange={(e) => {
+                      setInputPin(e.target.value.replace(/\D/g, ''));
+                      setError('');
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        createCharacter();
+                      }
+                    }}
+                  />
+                </div>
+
+                {error && (
+                  <div className="hush-room-error">{error}</div>
+                )}
+
+                <button
+                  className="hush-join-button"
+                  type="button"
+                  onClick={createCharacter}
+                >
+                  Create & Enter Room →
+                </button>
+              </>
+            )}
+
+          </div>
+        </div>
+
+        <div className="hush-security-note">
+          <span>🔒</span>
+          <span>
+            No account. No personal information. Just real people.
+          </span>
         </div>
 
       </div>
-
-    )}
-
-  </div>
-);
+    );
   }
 
 
