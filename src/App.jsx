@@ -78,11 +78,11 @@ const DraggableSticker = ({ src, className, alt = "" }) => {
       style={
         position
           ? {
-              left: `${position.x}px`,
-              top: `${position.y}px`,
-              right: "auto",
-              bottom: "auto",
-            }
+            left: `${position.x}px`,
+            top: `${position.y}px`,
+            right: "auto",
+            bottom: "auto",
+          }
           : undefined
       }
     />
@@ -187,13 +187,13 @@ const Landing = () => {
         </div>
 
 
-<div className="home-nav-links">
+        <div className="home-nav-links">
 
-  <a className="active" href="#home">
-    Home
-  </a>
+          <a className="active" href="#home">
+            Home
+          </a>
 
-</div>
+        </div>
 
 
         <button
@@ -271,41 +271,41 @@ const Landing = () => {
 
         {/* ================= PHONE / CHAT PREVIEW ================= */}
 
-   <div className="hero-visual">
+        <div className="hero-visual">
 
-  <div className="hero-phone-glow"></div>
+          <div className="hero-phone-glow"></div>
 
-  <img
-    src="/hush-phone.png"
-    alt="Hush chat application"
-    className="hush-phone-image"
-  />
+          <img
+            src="/hush-phone.png"
+            alt="Hush chat application"
+            className="hush-phone-image"
+          />
 
-  <div className="floating-note note-left">
-    Different
-    <br />
-    people.
-    <br />
-    New perspectives.
-  </div>
+          <div className="floating-note note-left">
+            Different
+            <br />
+            people.
+            <br />
+            New perspectives.
+          </div>
 
-  <div className="floating-arrow arrow-left">
-    ↙
-  </div>
+          <div className="floating-arrow arrow-left">
+            ↙
+          </div>
 
-  <div className="floating-note note-right">
-    Good
-    <br />
-    conversations
-    <br />
-    go further.
-  </div>
+          <div className="floating-note note-right">
+            Good
+            <br />
+            conversations
+            <br />
+            go further.
+          </div>
 
-  <div className="floating-arrow arrow-right">
-    ↙
-  </div>
+          <div className="floating-arrow arrow-right">
+            ↙
+          </div>
 
-</div>
+        </div>
       </section>
 
 
@@ -461,18 +461,18 @@ const CreateGroup = () => {
       <div className="hush-bg-image"></div>
 
 
- {/* FLOATING STICKERS */}
-<DraggableSticker
-  src="/sticker-left.png"
-  className="sticker-left"
-  alt=""
-/>
+      {/* FLOATING STICKERS */}
+      <DraggableSticker
+        src="/sticker-left.png"
+        className="sticker-left"
+        alt=""
+      />
 
-<DraggableSticker
-  src="/sticker-right.png"
-  className="sticker-right"
-  alt=""
-/>
+      <DraggableSticker
+        src="/sticker-right.png"
+        className="sticker-right"
+        alt=""
+      />
 
       {/* BACK BUTTON */}
       <button
@@ -741,20 +741,20 @@ const JoinGroup = () => {
     <div className="hush-auth-page">
 
       {/* BACK BUTTON */}
-<div className="hush-bg-image"></div>
+      <div className="hush-bg-image"></div>
 
-  {/* floating stickers */}
-<DraggableSticker
-  src="/sticker-left.png"
-  className="sticker-left"
-  alt=""
-/>
-<DraggableSticker
-  src="/sticker-right.png"
-  className="sticker-right"
-  alt=""
-/>
- 
+      {/* floating stickers */}
+      <DraggableSticker
+        src="/sticker-left.png"
+        className="sticker-left"
+        alt=""
+      />
+      <DraggableSticker
+        src="/sticker-right.png"
+        className="sticker-right"
+        alt=""
+      />
+
 
       <button
         className="hush-back-button"
@@ -903,6 +903,9 @@ const GroupRoom = () => {
   const [characters, setCharacters] =
     useState([]);
 
+  const [onlineCharacters, setOnlineCharacters] =
+    useState([]);
+
   const [messages, setMessages] =
     useState([]);
 
@@ -963,10 +966,11 @@ const GroupRoom = () => {
      SOCKET
      ========================================================= */
 
+  /* =========================================================
+     SOCKET
+     ========================================================= */
+
   useEffect(() => {
-
-    socket.emit('join_room', code);
-
 
     const handleReceiveMessage = (msg) => {
 
@@ -975,7 +979,6 @@ const GroupRoom = () => {
         msg
       ]);
 
-
       if (
         myChar &&
         msg.sender !== myChar.name
@@ -983,14 +986,23 @@ const GroupRoom = () => {
 
         showNotification(
           `New Message in ${code}`,
-          `${msg.sender}: ${
-            msg.fileUrl
-              ? 'Sent a file'
-              : msg.text
+          `${msg.sender}: ${msg.fileUrl
+            ? 'Sent a file'
+            : msg.text
           }`
         );
 
       }
+    };
+
+
+    // LIVE ONLINE CHARACTERS
+    const handleRoomPresence = (onlineList = []) => {
+
+      setOnlineCharacters(
+        Array.from(new Set(onlineList))
+      );
+
     };
 
 
@@ -999,12 +1011,24 @@ const GroupRoom = () => {
       handleReceiveMessage
     );
 
+    socket.on(
+      'room_presence',
+      handleRoomPresence
+    );
+
 
     return () => {
+
       socket.off(
         'receive_message',
         handleReceiveMessage
       );
+
+      socket.off(
+        'room_presence',
+        handleRoomPresence
+      );
+
     };
 
   }, [code, myChar]);
@@ -1089,6 +1113,11 @@ const GroupRoom = () => {
       setMyChar({
         name,
         pin
+      });
+
+      socket.emit('presence_join', {
+        groupName: code,
+        characterName: name
       });
 
       setStep('chat');
@@ -1474,11 +1503,10 @@ const GroupRoom = () => {
                       <button
                         key={character._id || character.name}
                         type="button"
-                        className={`info-character ${
-                          selectedChar?.name === character.name
-                            ? 'selected-character'
-                            : ''
-                        }`}
+                        className={`info-character ${selectedChar?.name === character.name
+                          ? 'selected-character'
+                          : ''
+                          }`}
                         onClick={() => {
                           setSelectedChar(character);
                           setError('');
@@ -1714,9 +1742,20 @@ const GroupRoom = () => {
 
           <button
             className="sidebar-exit"
-            onClick={() =>
-              setStep('auth')
-            }
+            onClick={() => {
+              socket.emit('presence_leave', {
+                groupName: code
+              });
+
+              setMyChar(null);
+              setOnlineCharacters([]);
+              setStep('auth');
+              setAuthView('selection');
+              setSelectedChar(null);
+              setInputName('');
+              setInputPin('');
+              setError('');
+            }}
           >
             <RiLogoutBoxRLine />
             Leave room
@@ -1833,11 +1872,10 @@ const GroupRoom = () => {
 
 
                 <div
-                  className={`msg-row ${
-                    m.sender === myChar.name
-                      ? 'mine'
-                      : ''
-                  }`}
+                  className={`msg-row ${m.sender === myChar.name
+                    ? 'mine'
+                    : ''
+                    }`}
                 >
 
 
@@ -2085,9 +2123,8 @@ const GroupRoom = () => {
          ===================================================== */}
 
       <aside
-        className={`chat-info-panel ${
-          mobileInfo ? 'mobile-open' : ''
-        }`}
+        className={`chat-info-panel ${mobileInfo ? 'mobile-open' : ''
+          }`}
       >
 
         <div className="info-header">
@@ -2150,15 +2187,14 @@ const GroupRoom = () => {
             </div>
 
             <div>
-
               <strong>
-                {characters.length}
+                {onlineCharacters.length}
               </strong>
 
               <span>
-                {characters.length === 1
-                  ? 'character in room'
-                  : 'characters in room'}
+                {onlineCharacters.length === 1
+                  ? 'character online'
+                  : 'characters online'}
               </span>
 
             </div>
